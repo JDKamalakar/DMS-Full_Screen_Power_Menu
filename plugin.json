@@ -1,0 +1,18 @@
+{
+    "id": "dmsPowerMenu",
+    "name": "PowerMenu Settings",
+    "description": "Material 3 inspired fullscreen Power Menu triggered via IPC",
+    "version": "1.0.0",
+    "author": "JDKamalakar",
+    "icon": "screenshot_region",
+    "type": "daemon",
+    "capabilities": [],
+    "component": "./PowerMenu.qml",
+    "settings": "./PowerMenuSettings.qml",
+    "requires_dms": ">=1.2.0",
+    "permissions": [
+        "process",
+        "settings_read",
+        "settings_write"
+    ]
+}
