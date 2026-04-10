@@ -48,20 +48,46 @@ PluginSettings {
                     spacing: Theme.spacingM
                     DankIcon { name: "visibility"; size: 22; anchors.verticalCenter: parent.verticalCenter; opacity: 0.8 }
                     Column {
-                        width: parent.width - 22 - Theme.spacingM
+                        width: parent.width - 22 - 22 - Theme.spacingM * 2 // Room for both icons + spacing
                         StyledText { text: "Menu Transparency"; font.pixelSize: Theme.fontSizeMedium; font.weight: Font.Medium; color: Theme.surfaceText }
                         StyledText { text: "Opacity of the power menu floating container."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
                     }
+                    DankIcon {
+                        name: "restart_alt"
+                        size: 22
+                        anchors.verticalCenter: parent.verticalCenter
+                        opacity: menuOpacitySlider.value !== 20 ? 0.8 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                        MouseArea {
+                            anchors.fill: parent
+                            enabled: menuOpacitySlider.value !== 20
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                menuOpacitySlider.value = menuOpacitySlider.defaultValue;
+                                root.saveValue(menuOpacitySlider.settingKey, menuOpacitySlider.defaultValue);
+                            }
+                        }
+                    }
                 }
-                SliderSetting {
+                DankSlider {
+                    id: menuOpacitySlider
+                    property int defaultValue: 20
+                    property string settingKey: "menuOpacity"
                     width: parent.width
-                    settingKey: "menuOpacity"
-                    label: ""
-                    description: ""
-                    defaultValue: 10
                     minimum: 0
                     maximum: 100
                     unit: "%"
+                    function loadValue() {
+                        var settings = root;
+                        if (settings) {
+                            value = settings.loadValue(settingKey, defaultValue);
+                        }
+                    }
+                    Component.onCompleted: loadValue()
+                    onSliderValueChanged: newValue => {
+                        value = newValue;
+                        root.saveValue(settingKey, newValue);
+                    }
                 }
             }
 
@@ -76,20 +102,46 @@ PluginSettings {
                     spacing: Theme.spacingM
                     DankIcon { name: "opacity"; size: 22; anchors.verticalCenter: parent.verticalCenter; opacity: 0.8 }
                     Column {
-                        width: parent.width - 22 - Theme.spacingM
+                        width: parent.width - 22 - 22 - Theme.spacingM * 2 // Room for both icons + spacing
                         StyledText { text: "Background Dim Intensity"; font.pixelSize: Theme.fontSizeMedium; font.weight: Font.Medium; color: Theme.surfaceText }
                         StyledText { text: "How dark the background dims when the menu is open."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
                     }
+                    DankIcon {
+                        name: "restart_alt"
+                        size: 22
+                        anchors.verticalCenter: parent.verticalCenter
+                        opacity: dimOpacitySlider.value !== 90 ? 0.8 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                        MouseArea {
+                            anchors.fill: parent
+                            enabled: dimOpacitySlider.value !== 90
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                dimOpacitySlider.value = dimOpacitySlider.defaultValue;
+                                root.saveValue(dimOpacitySlider.settingKey, dimOpacitySlider.defaultValue);
+                            }
+                        }
+                    }
                 }
-                SliderSetting {
+                DankSlider {
+                    id: dimOpacitySlider
+                    property int defaultValue: 90
+                    property string settingKey: "dimOpacity"
                     width: parent.width
-                    settingKey: "dimOpacity"
-                    label: ""
-                    description: ""
-                    defaultValue: 90
                     minimum: 0
                     maximum: 100
                     unit: "%"
+                    function loadValue() {
+                        var settings = root;
+                        if (settings) {
+                            value = settings.loadValue(settingKey, defaultValue);
+                        }
+                    }
+                    Component.onCompleted: loadValue()
+                    onSliderValueChanged: newValue => {
+                        value = newValue;
+                        root.saveValue(settingKey, newValue);
+                    }
                 }
             }
 

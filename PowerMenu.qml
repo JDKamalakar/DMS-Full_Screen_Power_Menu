@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -80,6 +81,18 @@ PluginComponent {
 			}
 		}
 
+		DropShadow {
+			id: menuCardShadow
+			anchors.fill: menuCard
+			source: menuCard
+			verticalOffset: 6
+			radius: 20
+			samples: 41
+			color: Qt.rgba(0, 0, 0, overlay.visible ? 0.35 : 0.0)
+			transparentBorder: true
+			Behavior on color { ColorAnimation { duration: 300 } }
+		}
+
 		// Power Menu Card
 		Rectangle {
 			id: menuCard
@@ -87,14 +100,15 @@ PluginComponent {
 			width: mainRow.implicitWidth + 48
 			height: mainRow.implicitHeight + 48
 			radius: 32
-			color: Qt.rgba(1, 1, 1, pluginData && pluginData.menuOpacity != null ? pluginData.menuOpacity / 100 : 0.10)
-			border.color: Qt.rgba(1, 1, 1, 0.20) // border-white/20
-			border.width: 1
+			color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, pluginData && pluginData.menuOpacity != null ? pluginData.menuOpacity / 100 : 0.20)
+			border.color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.20) // Use Theme.primary for the border as well
 
 			scale: overlay.visible ? 1.0 : 0.9
 			opacity: overlay.visible ? 1.0 : 0.0
 			Behavior on scale   { NumberAnimation { duration: 600; easing.type: Easing.OutElastic; easing.overshoot: 1.2 } }
 			Behavior on opacity { NumberAnimation { duration: 300 } }
+			Behavior on color   { ColorAnimation { duration: 300 } }
+			Behavior on border.color { ColorAnimation { duration: 300 } }
 
 			// Escape key to close
 			Keys.onEscapePressed: root.close()
@@ -134,7 +148,7 @@ PluginComponent {
 				PowerButton {
 					buttonId: "dms"
 					label: "Restart DMS"
-					iconCode: "terminal"
+					iconImageSource: "https://raw.githubusercontent.com/AvengeMedia/DankMaterialShell/f2df53afcd0870445e7f3cd45e91ac135a04442e/assets/danklogo.svg"
 					accentColor: "#FDE047"
 					bgColor: Qt.rgba(0.99, 0.88, 0.28, 0.2)
 					onActivated: {
@@ -214,6 +228,7 @@ PluginComponent {
 		property string buttonId: ""
 		property string label: ""
 		property string iconCode: ""
+		property string iconImageSource: ""
 		property color accentColor: "#D0BCFF"
 		property color bgColor: Qt.rgba(1, 1, 1, 0.1)
 		property bool isPrimary: false
@@ -286,6 +301,12 @@ PluginComponent {
 			onPaint: {
 				var ctx = getContext("2d");
 				ctx.clearRect(0, 0, width, height);
+				
+				// Canvas shadow for button depth
+				ctx.shadowColor = Qt.rgba(0, 0, 0, 0.4);
+				ctx.shadowBlur = 12;
+				ctx.shadowOffsetY = 6;
+				
 				ctx.fillStyle = paintColor;
 				ctx.strokeStyle = paintBorder;
 				ctx.lineWidth = 1;
@@ -302,6 +323,7 @@ PluginComponent {
 				ctx.arcTo(0, 0, tlrAnim, 0, tlrAnim);
 				ctx.closePath();
 				ctx.fill();
+				ctx.shadowColor = "transparent"; // Remove shadow for stroke
 				ctx.stroke();
 			}
 
@@ -342,7 +364,27 @@ PluginComponent {
 						width: 32
 						height: 32
 
+						transform: [
+							Rotation {
+								id: iconRotation
+								origin.x: 16; origin.y: 16
+								angle: 0
+							},
+							Scale {
+								id: iconScale
+								origin.x: 16; origin.y: 16
+								xScale: ma.containsMouse ? 1.1 : 1.0
+								yScale: xScale
+								Behavior on xScale { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+							},
+							Translate {
+								id: iconTranslate
+								x: 0; y: 0
+							}
+						]
+
 						Text {
+							visible: iconCode !== ""
 							id: btnIcon
 							anchors.centerIn: parent
 							text: iconCode
@@ -350,43 +392,35 @@ PluginComponent {
 							font.pixelSize: 32
 							color: ma.containsMouse ? accentColor : (isPrimary ? Qt.rgba(1, 0.7, 0.7, 1) : Qt.rgba(1, 1, 1, 0.9))
 							Behavior on color { ColorAnimation { duration: 300 } }
-
-							// Custom Animations based on buttonId
-							transform: [
-								Rotation {
-									id: iconRotation
-									origin.x: 16; origin.y: 16
-									angle: ma.containsMouse ? (buttonId === "sleep" ? -20 : (buttonId === "restart" ? 180 : (buttonId === "power" ? 90 : 0))) : 0
-									Behavior on angle {
-										enabled: buttonId !== "lock"
-										NumberAnimation { duration: ma.containsMouse ? 500 : 300; easing.type: Easing.OutBack }
-									}
-								},
-								Scale {
-									id: iconScale
-									origin.x: 16; origin.y: 16
-									xScale: ma.containsMouse && buttonId !== "lock" ? (buttonId === "power" ? 1.2 : 1.1) : 1.0
-									yScale: xScale
-									Behavior on xScale { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
-								},
-								Translate {
-									id: iconTranslate
-									x: ma.containsMouse && buttonId === "logout" ? 6 : 0
-									Behavior on x { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
-								}
-							]
 						}
 
+						Image {
+							id: urlIconSrc
+							visible: false
+							anchors.fill: parent
+							source: iconImageSource
+							sourceSize: Qt.size(32, 32)
+							fillMode: Image.PreserveAspectFit
+						}
+						ColorOverlay {
+							visible: iconImageSource !== ""
+							anchors.fill: urlIconSrc
+							source: urlIconSrc
+							color: ma.containsMouse ? accentColor : (isPrimary ? Qt.rgba(1, 0.7, 0.7, 1) : Qt.rgba(1, 1, 1, 0.9))
+							Behavior on color { ColorAnimation { duration: 300 } }
+						}
+
+						// Unified Wiggle on all icons
 						SequentialAnimation {
-							id: lockShakeAnim
-							running: ma.containsMouse && buttonId === "lock"
+							id: wiggleShakeAnim
+							running: ma.containsMouse
 							loops: Animation.Infinite
+							PauseAnimation { duration: 1500 }
 							NumberAnimation { target: iconRotation; property: "angle"; to: -15; duration: 80; easing.type: Easing.InOutQuad }
 							NumberAnimation { target: iconRotation; property: "angle"; to: 15; duration: 80; easing.type: Easing.InOutQuad }
 							NumberAnimation { target: iconRotation; property: "angle"; to: -10; duration: 80; easing.type: Easing.InOutQuad }
 							NumberAnimation { target: iconRotation; property: "angle"; to: 10; duration: 80; easing.type: Easing.InOutQuad }
 							NumberAnimation { target: iconRotation; property: "angle"; to: 0; duration: 80; easing.type: Easing.InOutQuad }
-							PauseAnimation { duration: 1500 }
 							onRunningChanged: {
 								if (!running) iconRotation.angle = 0;
 							}
@@ -394,13 +428,20 @@ PluginComponent {
 					}
 				}
 
-				Text {
-					text: label
-					color: ma.containsMouse ? "white" : (isPrimary ? Qt.rgba(1, 0.8, 0.8, 1) : Qt.rgba(1, 1, 1, 0.7))
-					font.pixelSize: 13
-					font.weight: Font.Medium
+				Item {
 					Layout.alignment: Qt.AlignHCenter
-					Behavior on color { ColorAnimation { duration: 300 } }
+					implicitWidth: labelText.implicitWidth
+					implicitHeight: labelText.implicitHeight
+					
+					Text {
+						id: labelText
+						anchors.centerIn: parent
+						text: label
+						color: ma.containsMouse ? "white" : (isPrimary ? Qt.rgba(1, 0.8, 0.8, 1) : Qt.rgba(1, 1, 1, 0.7))
+						font.pixelSize: 13
+						font.weight: Font.Medium
+						Behavior on color { ColorAnimation { duration: 300 } }
+					}
 				}
 			}
 
