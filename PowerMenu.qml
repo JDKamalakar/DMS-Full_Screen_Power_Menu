@@ -71,7 +71,7 @@ PluginComponent {
 		Rectangle {
 			anchors.fill: parent
 			color: "#000000"
-			opacity: overlay.visible ? (pluginData && pluginData.dimOpacity != null ? pluginData.dimOpacity / 100 : 0.40) : 0
+			opacity: overlay.visible ? (pluginData && pluginData.dimOpacity != null ? pluginData.dimOpacity / 100 : 0.90) : 0
 			Behavior on opacity { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
 
 			MouseArea {
@@ -87,7 +87,7 @@ PluginComponent {
 			width: mainRow.implicitWidth + 48
 			height: mainRow.implicitHeight + 48
 			radius: 32
-			color: Qt.rgba(1, 1, 1, 0.08) // bg-white/10
+			color: Qt.rgba(1, 1, 1, pluginData && pluginData.menuOpacity != null ? pluginData.menuOpacity / 100 : 0.10)
 			border.color: Qt.rgba(1, 1, 1, 0.20) // border-white/20
 			border.width: 1
 
@@ -126,7 +126,21 @@ PluginComponent {
 					bgColor: Qt.rgba(0.39, 0.38, 0.96, 0.2)
 					onActivated: {
 						root.close();
+						suspendProc.command = (pluginData && pluginData.suspendCommand ? pluginData.suspendCommand : "systemctl suspend").split(" ");
 						suspendProc.running = true;
+					}
+				}
+
+				PowerButton {
+					buttonId: "dms"
+					label: "Restart DMS"
+					iconCode: "terminal"
+					accentColor: "#FDE047"
+					bgColor: Qt.rgba(0.99, 0.88, 0.28, 0.2)
+					onActivated: {
+						root.close();
+						dmsRestartProc.command = (pluginData && pluginData.dmsRestartCommand ? pluginData.dmsRestartCommand : "dms restart").split(" ");
+						dmsRestartProc.running = true;
 					}
 				}
 
@@ -138,6 +152,7 @@ PluginComponent {
 					bgColor: Qt.rgba(0.13, 0.77, 0.36, 0.2)
 					onActivated: {
 						root.close();
+						rebootProc.command = (pluginData && pluginData.rebootCommand ? pluginData.rebootCommand : "systemctl reboot").split(" ");
 						rebootProc.running = true;
 					}
 				}
@@ -165,6 +180,7 @@ PluginComponent {
 					isPrimary: true
 					onActivated: {
 						root.close();
+						shutdownProc.command = (pluginData && pluginData.shutdownCommand ? pluginData.shutdownCommand : "systemctl poweroff").split(" ");
 						shutdownProc.running = true;
 					}
 				}
@@ -183,11 +199,12 @@ PluginComponent {
 	// PROCESSES
 	// -------------------------------------------------------------------------
 
-	Process { id: shutdownProc; command: ["systemctl", "poweroff"] }
-	Process { id: rebootProc;   command: ["systemctl", "reboot"]   }
-	Process { id: suspendProc;  command: ["systemctl", "suspend"]  }
-	Process { id: logoutProc   }
-	Process { id: lockProc     }
+	Process { id: shutdownProc }
+	Process { id: rebootProc }
+	Process { id: suspendProc }
+	Process { id: logoutProc }
+	Process { id: lockProc }
+	Process { id: dmsRestartProc }
 
 	// -------------------------------------------------------------------------
 	// POWER BUTTON COMPONENT
