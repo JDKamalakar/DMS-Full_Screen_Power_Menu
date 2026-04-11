@@ -9,141 +9,189 @@ PluginSettings {
     id: root
     pluginId: "dmsFullScreenPowerMenu"
 
-    Rectangle {
+    Column {
+        id: rootWrapper
         width: parent.width
-        height: generalGroup.implicitHeight + Theme.spacingM * 2
-        color: Theme.surfaceContainer
-        radius: Theme.cornerRadius
-        border.color: Theme.outline
-        border.width: 1
-        opacity: 0.8
+        spacing: Theme.spacingM
 
         function loadValue() {
-            for (var i = 0; i < generalGroup.children.length; i++) {
-                var item = generalGroup.children[i];
-                if (item.loadValue) item.loadValue();
-                else if (item.children) {
-                    for (var j = 0; j < item.children.length; j++) {
-                        var subItem = item.children[j];
-                        if (subItem.loadValue) subItem.loadValue();
+            var groups = [generalGroup, cmdGroup];
+            for (var g = 0; g < groups.length; g++) {
+                var group = groups[g];
+                for (var i = 0; i < group.children.length; i++) {
+                    var item = group.children[i];
+                    if (item.loadValue) item.loadValue();
+                    else if (item.children) {
+                        for (var j = 0; j < item.children.length; j++) {
+                            var subItem = item.children[j];
+                            if (subItem.loadValue) subItem.loadValue();
+                        }
                     }
                 }
             }
         }
 
-        Column {
-            id: generalGroup
-            anchors.fill: parent
-            anchors.margins: Theme.spacingM
-            spacing: Theme.spacingM
+        // ---------------------------------------------------------------------
+        // APPEARANCE SETTINGS CONTAINER
+        // ---------------------------------------------------------------------
+        Rectangle {
+            width: parent.width
+            height: generalGroup.implicitHeight + Theme.spacingM * 2
+            color: Theme.surfaceContainer
+            radius: Theme.cornerRadius
+            border.color: Theme.outline
+            border.width: 1
+            opacity: 0.8
 
-            // -----------------------------------------------------------------
-            // Menu Transparency
-            // -----------------------------------------------------------------
             Column {
-                width: parent.width
-                spacing: Theme.spacingXS
-                Row {
+                id: generalGroup
+                anchors.fill: parent
+                anchors.margins: Theme.spacingM
+                spacing: Theme.spacingM
+
+                // -------------------------------------------------------------
+                // Menu Transparency
+                // -------------------------------------------------------------
+                Column {
                     width: parent.width
-                    spacing: Theme.spacingM
-                    DankIcon { name: "visibility"; size: 22; anchors.verticalCenter: parent.verticalCenter; opacity: 0.8 }
-                    Column {
-                        width: parent.width - 22 - 22 - Theme.spacingM * 2 // Room for both icons + spacing
-                        StyledText { text: "Menu Transparency"; font.pixelSize: Theme.fontSizeMedium; font.weight: Font.Medium; color: Theme.surfaceText }
-                        StyledText { text: "Opacity of the power menu floating container."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
-                    }
-                    DankIcon {
-                        name: "restart_alt"
-                        size: 22
-                        anchors.verticalCenter: parent.verticalCenter
-                        opacity: menuOpacitySlider.value !== 20 ? 0.8 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 200 } }
-                        MouseArea {
-                            anchors.fill: parent
-                            enabled: menuOpacitySlider.value !== 20
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                menuOpacitySlider.value = menuOpacitySlider.defaultValue;
-                                root.saveValue(menuOpacitySlider.settingKey, menuOpacitySlider.defaultValue);
+                    spacing: Theme.spacingXS
+                    Row {
+                        width: parent.width
+                        spacing: Theme.spacingM
+                        DankIcon { name: "visibility"; size: 22; anchors.verticalCenter: parent.verticalCenter; opacity: 0.8 }
+                        Column {
+                            width: parent.width - 22 - 22 - Theme.spacingM * 2
+                            StyledText { text: "Menu Transparency"; font.pixelSize: Theme.fontSizeMedium; font.weight: Font.Medium; color: Theme.surfaceText }
+                            StyledText { text: "Opacity of the power menu floating container."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
+                        }
+                        DankIcon {
+                            name: "restart_alt"
+                            size: 22
+                            anchors.verticalCenter: parent.verticalCenter
+                            opacity: menuOpacitySlider.value !== 20 ? 0.8 : 0.0
+                            Behavior on opacity { NumberAnimation { duration: 200 } }
+                            NumberAnimation {
+                                id: menuOpacityAnim
+                                target: menuOpacitySlider
+                                property: "value"
+                                to: menuOpacitySlider.defaultValue
+                                duration: 300
+                                easing.type: Easing.OutCubic
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                enabled: menuOpacitySlider.value !== 20
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    menuOpacityAnim.restart();
+                                    root.saveValue(menuOpacitySlider.settingKey, menuOpacitySlider.defaultValue);
+                                }
                             }
                         }
                     }
-                }
-                DankSlider {
-                    id: menuOpacitySlider
-                    property int defaultValue: 20
-                    property string settingKey: "menuOpacity"
-                    width: parent.width
-                    minimum: 0
-                    maximum: 100
-                    unit: "%"
-                    function loadValue() {
-                        var settings = root;
-                        if (settings) {
-                            value = settings.loadValue(settingKey, defaultValue);
+                    DankSlider {
+                        id: menuOpacitySlider
+                        property int defaultValue: 20
+                        property string settingKey: "menuOpacity"
+                        width: parent.width
+                        minimum: 0
+                        maximum: 100
+                        unit: "%"
+                        function loadValue() {
+                            var settings = root;
+                            if (settings) {
+                                value = settings.loadValue(settingKey, defaultValue);
+                            }
+                        }
+                        Component.onCompleted: loadValue()
+                        onSliderValueChanged: newValue => {
+                            value = newValue;
+                            root.saveValue(settingKey, newValue);
                         }
                     }
-                    Component.onCompleted: loadValue()
-                    onSliderValueChanged: newValue => {
-                        value = newValue;
-                        root.saveValue(settingKey, newValue);
-                    }
                 }
-            }
 
-            // -----------------------------------------------------------------
-            // Dim Intensity
-            // -----------------------------------------------------------------
-            Column {
-                width: parent.width
-                spacing: Theme.spacingXS
-                Row {
+                // -------------------------------------------------------------
+                // Dim Intensity
+                // -------------------------------------------------------------
+                Column {
                     width: parent.width
-                    spacing: Theme.spacingM
-                    DankIcon { name: "opacity"; size: 22; anchors.verticalCenter: parent.verticalCenter; opacity: 0.8 }
-                    Column {
-                        width: parent.width - 22 - 22 - Theme.spacingM * 2 // Room for both icons + spacing
-                        StyledText { text: "Background Dim Intensity"; font.pixelSize: Theme.fontSizeMedium; font.weight: Font.Medium; color: Theme.surfaceText }
-                        StyledText { text: "How dark the background dims when the menu is open."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
-                    }
-                    DankIcon {
-                        name: "restart_alt"
-                        size: 22
-                        anchors.verticalCenter: parent.verticalCenter
-                        opacity: dimOpacitySlider.value !== 90 ? 0.8 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 200 } }
-                        MouseArea {
-                            anchors.fill: parent
-                            enabled: dimOpacitySlider.value !== 90
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                dimOpacitySlider.value = dimOpacitySlider.defaultValue;
-                                root.saveValue(dimOpacitySlider.settingKey, dimOpacitySlider.defaultValue);
+                    spacing: Theme.spacingXS
+                    Row {
+                        width: parent.width
+                        spacing: Theme.spacingM
+                        DankIcon { name: "opacity"; size: 22; anchors.verticalCenter: parent.verticalCenter; opacity: 0.8 }
+                        Column {
+                            width: parent.width - 22 - 22 - Theme.spacingM * 2
+                            StyledText { text: "Background Dim Intensity"; font.pixelSize: Theme.fontSizeMedium; font.weight: Font.Medium; color: Theme.surfaceText }
+                            StyledText { text: "How dark the background dims when the menu is open."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
+                        }
+                        DankIcon {
+                            name: "restart_alt"
+                            size: 22
+                            anchors.verticalCenter: parent.verticalCenter
+                            opacity: dimOpacitySlider.value !== 90 ? 0.8 : 0.0
+                            Behavior on opacity { NumberAnimation { duration: 200 } }
+                            NumberAnimation {
+                                id: dimOpacityAnim
+                                target: dimOpacitySlider
+                                property: "value"
+                                to: dimOpacitySlider.defaultValue
+                                duration: 300
+                                easing.type: Easing.OutCubic
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                enabled: dimOpacitySlider.value !== 90
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    dimOpacityAnim.restart();
+                                    root.saveValue(dimOpacitySlider.settingKey, dimOpacitySlider.defaultValue);
+                                }
                             }
                         }
                     }
-                }
-                DankSlider {
-                    id: dimOpacitySlider
-                    property int defaultValue: 90
-                    property string settingKey: "dimOpacity"
-                    width: parent.width
-                    minimum: 0
-                    maximum: 100
-                    unit: "%"
-                    function loadValue() {
-                        var settings = root;
-                        if (settings) {
-                            value = settings.loadValue(settingKey, defaultValue);
+                    DankSlider {
+                        id: dimOpacitySlider
+                        property int defaultValue: 90
+                        property string settingKey: "dimOpacity"
+                        width: parent.width
+                        minimum: 0
+                        maximum: 100
+                        unit: "%"
+                        function loadValue() {
+                            var settings = root;
+                            if (settings) {
+                                value = settings.loadValue(settingKey, defaultValue);
+                            }
                         }
-                    }
-                    Component.onCompleted: loadValue()
-                    onSliderValueChanged: newValue => {
-                        value = newValue;
-                        root.saveValue(settingKey, newValue);
+                        Component.onCompleted: loadValue()
+                        onSliderValueChanged: newValue => {
+                            value = newValue;
+                            root.saveValue(settingKey, newValue);
+                        }
                     }
                 }
             }
+        }
+
+        // ---------------------------------------------------------------------
+        // COMMAND EXECUTION SETTINGS CONTAINER
+        // ---------------------------------------------------------------------
+        Rectangle {
+            width: parent.width
+            height: cmdGroup.implicitHeight + Theme.spacingM * 2
+            color: Theme.surfaceContainer
+            radius: Theme.cornerRadius
+            border.color: Theme.outline
+            border.width: 1
+            opacity: 0.8
+
+            Column {
+                id: cmdGroup
+                anchors.fill: parent
+                anchors.margins: Theme.spacingM
+                spacing: Theme.spacingM
 
             // -----------------------------------------------------------------
             // Shutdown Cmd
@@ -161,12 +209,22 @@ PluginSettings {
                         StyledText { text: "Command executed to power off the machine."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
                     }
                 }
-                StringSetting {
+                DankTextField {
+                    id: shutdownCmdField
+                    property string settingKey: "shutdownCommand"
+                    property string defaultValue: "systemctl poweroff"
                     width: parent.width
-                    settingKey: "shutdownCommand"
-                    label: ""
-                    description: ""
-                    defaultValue: "systemctl poweroff"
+                    text: defaultValue
+                    function loadValue() {
+                        var settings = root;
+                        if (settings) {
+                            text = settings.loadValue(settingKey, defaultValue);
+                        }
+                    }
+                    Component.onCompleted: loadValue()
+                    onEditingFinished: {
+                        root.saveValue(settingKey, text);
+                    }
                 }
             }
 
@@ -186,12 +244,22 @@ PluginSettings {
                         StyledText { text: "Command executed to reboot the machine."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
                     }
                 }
-                StringSetting {
+                DankTextField {
+                    id: rebootCmdField
+                    property string settingKey: "rebootCommand"
+                    property string defaultValue: "systemctl reboot"
                     width: parent.width
-                    settingKey: "rebootCommand"
-                    label: ""
-                    description: ""
-                    defaultValue: "systemctl reboot"
+                    text: defaultValue
+                    function loadValue() {
+                        var settings = root;
+                        if (settings) {
+                            text = settings.loadValue(settingKey, defaultValue);
+                        }
+                    }
+                    Component.onCompleted: loadValue()
+                    onEditingFinished: {
+                        root.saveValue(settingKey, text);
+                    }
                 }
             }
 
@@ -211,12 +279,22 @@ PluginSettings {
                         StyledText { text: "Command executed to sleep/suspend the machine."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
                     }
                 }
-                StringSetting {
+                DankTextField {
+                    id: suspendCmdField
+                    property string settingKey: "suspendCommand"
+                    property string defaultValue: "systemctl suspend"
                     width: parent.width
-                    settingKey: "suspendCommand"
-                    label: ""
-                    description: ""
-                    defaultValue: "systemctl suspend"
+                    text: defaultValue
+                    function loadValue() {
+                        var settings = root;
+                        if (settings) {
+                            text = settings.loadValue(settingKey, defaultValue);
+                        }
+                    }
+                    Component.onCompleted: loadValue()
+                    onEditingFinished: {
+                        root.saveValue(settingKey, text);
+                    }
                 }
             }
 
@@ -236,12 +314,22 @@ PluginSettings {
                         StyledText { text: "Command to log out of the session."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
                     }
                 }
-                StringSetting {
+                DankTextField {
+                    id: logoutCmdField
+                    property string settingKey: "logoutCommand"
+                    property string defaultValue: "loginctl terminate-session"
                     width: parent.width
-                    settingKey: "logoutCommand"
-                    label: ""
-                    description: ""
-                    defaultValue: "loginctl terminate-session"
+                    text: defaultValue
+                    function loadValue() {
+                        var settings = root;
+                        if (settings) {
+                            text = settings.loadValue(settingKey, defaultValue);
+                        }
+                    }
+                    Component.onCompleted: loadValue()
+                    onEditingFinished: {
+                        root.saveValue(settingKey, text);
+                    }
                 }
             }
 
@@ -261,12 +349,22 @@ PluginSettings {
                         StyledText { text: "Command to lock the screen."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
                     }
                 }
-                StringSetting {
+                DankTextField {
+                    id: lockCmdField
+                    property string settingKey: "lockCommand"
+                    property string defaultValue: "loginctl lock-session"
                     width: parent.width
-                    settingKey: "lockCommand"
-                    label: ""
-                    description: ""
-                    defaultValue: "loginctl lock-session"
+                    text: defaultValue
+                    function loadValue() {
+                        var settings = root;
+                        if (settings) {
+                            text = settings.loadValue(settingKey, defaultValue);
+                        }
+                    }
+                    Component.onCompleted: loadValue()
+                    onEditingFinished: {
+                        root.saveValue(settingKey, text);
+                    }
                 }
             }
 
@@ -286,14 +384,25 @@ PluginSettings {
                         StyledText { text: "Command to restart the shell."; font.pixelSize: Theme.fontSizeSmall; color: Theme.surfaceVariantText; width: parent.width; wrapMode: Text.WordWrap }
                     }
                 }
-                StringSetting {
+                DankTextField {
+                    id: dmsRestartCmdField
+                    property string settingKey: "dmsRestartCommand"
+                    property string defaultValue: "dms restart"
                     width: parent.width
-                    settingKey: "dmsRestartCommand"
-                    label: ""
-                    description: ""
-                    defaultValue: "dms restart"
+                    text: defaultValue
+                    function loadValue() {
+                        var settings = root;
+                        if (settings) {
+                            text = settings.loadValue(settingKey, defaultValue);
+                        }
+                    }
+                    Component.onCompleted: loadValue()
+                    onEditingFinished: {
+                        root.saveValue(settingKey, text);
+                    }
                 }
             }
         }
     }
+}
 }

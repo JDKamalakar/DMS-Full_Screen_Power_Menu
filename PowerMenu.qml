@@ -116,12 +116,14 @@ PluginComponent {
 			RowLayout {
 				id: mainRow
 				anchors.centerIn: parent
-				spacing: 12
+				spacing: 20
 
 				PowerButton {
+					id: lockBtn
 					buttonId: "lock"
 					label: "Lock"
 					iconCode: "lock"
+					shortcutKey: "L"
 					isFirst: true
 					accentColor: "#93C5FD"
 					bgColor: Qt.rgba(0.23, 0.51, 0.96, 0.2)
@@ -133,9 +135,11 @@ PluginComponent {
 				}
 
 				PowerButton {
+					id: sleepBtn
 					buttonId: "sleep"
 					label: "Sleep"
 					iconCode: "bedtime"
+					shortcutKey: "S"
 					accentColor: "#A5B4FC"
 					bgColor: Qt.rgba(0.39, 0.38, 0.96, 0.2)
 					onActivated: {
@@ -146,8 +150,10 @@ PluginComponent {
 				}
 
 				PowerButton {
+					id: dmsBtn
 					buttonId: "dms"
 					label: "Restart DMS"
+					shortcutKey: "D"
 					iconImageSource: "https://raw.githubusercontent.com/AvengeMedia/DankMaterialShell/f2df53afcd0870445e7f3cd45e91ac135a04442e/assets/danklogo.svg"
 					accentColor: "#FDE047"
 					bgColor: Qt.rgba(0.99, 0.88, 0.28, 0.2)
@@ -159,9 +165,11 @@ PluginComponent {
 				}
 
 				PowerButton {
+					id: restartBtn
 					buttonId: "restart"
 					label: "Restart"
 					iconCode: "restart_alt"
+					shortcutKey: "R"
 					accentColor: "#86EFAC"
 					bgColor: Qt.rgba(0.13, 0.77, 0.36, 0.2)
 					onActivated: {
@@ -172,9 +180,11 @@ PluginComponent {
 				}
 
 				PowerButton {
+					id: logoutBtn
 					buttonId: "logout"
 					label: "Log Out"
 					iconCode: "logout"
+					shortcutKey: "X"
 					accentColor: "#FDBA74"
 					bgColor: Qt.rgba(0.97, 0.58, 0.11, 0.2)
 					onActivated: {
@@ -185,9 +195,11 @@ PluginComponent {
 				}
 
 				PowerButton {
+					id: powerBtn
 					buttonId: "power"
 					label: "Power Off"
 					iconCode: "power_settings_new"
+					shortcutKey: "P"
 					isLast: true
 					accentColor: "#FCA5A5"
 					bgColor: Qt.rgba(0.94, 0.26, 0.26, 0.2)
@@ -206,6 +218,14 @@ PluginComponent {
 			anchors.fill: parent
 			focus: overlay.visible
 			Keys.onEscapePressed: root.close()
+			Keys.onPressed: (event) => {
+				if (event.key === Qt.Key_L) lockBtn.activated();
+				else if (event.key === Qt.Key_S) sleepBtn.activated();
+				else if (event.key === Qt.Key_D) dmsBtn.activated();
+				else if (event.key === Qt.Key_R) restartBtn.activated();
+				else if (event.key === Qt.Key_X) logoutBtn.activated();
+				else if (event.key === Qt.Key_P) powerBtn.activated();
+			}
 		}
 	}
 
@@ -229,6 +249,7 @@ PluginComponent {
 		property string label: ""
 		property string iconCode: ""
 		property string iconImageSource: ""
+		property string shortcutKey: ""
 		property color accentColor: "#D0BCFF"
 		property color bgColor: Qt.rgba(1, 1, 1, 0.1)
 		property bool isPrimary: false
@@ -237,8 +258,8 @@ PluginComponent {
 
 		signal activated()
 
-		implicitWidth: 120
-		implicitHeight: 120
+		implicitWidth: 140
+		implicitHeight: 140
 
 		// Top level transforms for hover shift and click scale
 		transform: [
@@ -329,19 +350,19 @@ PluginComponent {
 
 			ColumnLayout {
 				anchors.centerIn: parent
-				spacing: 8
+				spacing: 10
 
 				Item {
-					width: 56
-					height: 56
+					width: 64
+					height: 64
 					Layout.alignment: Qt.AlignHCenter
 
 					// Inner Morphing Pill
 					Rectangle {
 						id: morphPill
 						anchors.centerIn: parent
-						width: 48
-						height: 48
+						width: 56
+						height: 56
 						
 						radius: ma.containsMouse ? width * 0.35 : width * 0.5
 						color: isPrimary ? Qt.rgba(0.94, 0.26, 0.26, 0.3) : Qt.rgba(1, 1, 1, 0.1)
@@ -361,18 +382,18 @@ PluginComponent {
 					// Dynamic Icon wrapper based on buttonId
 					Item {
 						anchors.centerIn: parent
-						width: 32
-						height: 32
+						width: 36
+						height: 36
 
 						transform: [
 							Rotation {
 								id: iconRotation
-								origin.x: 16; origin.y: 16
+								origin.x: 18; origin.y: 18
 								angle: 0
 							},
 							Scale {
 								id: iconScale
-								origin.x: 16; origin.y: 16
+								origin.x: 18; origin.y: 18
 								xScale: ma.containsMouse ? 1.1 : 1.0
 								yScale: xScale
 								Behavior on xScale { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
@@ -389,7 +410,7 @@ PluginComponent {
 							anchors.centerIn: parent
 							text: iconCode
 							font.family: "Material Symbols Rounded"
-							font.pixelSize: 32
+							font.pixelSize: 36
 							color: ma.containsMouse ? accentColor : (isPrimary ? Qt.rgba(1, 0.7, 0.7, 1) : Qt.rgba(1, 1, 1, 0.9))
 							Behavior on color { ColorAnimation { duration: 300 } }
 						}
@@ -399,7 +420,7 @@ PluginComponent {
 							visible: false
 							anchors.fill: parent
 							source: iconImageSource
-							sourceSize: Qt.size(32, 32)
+							sourceSize: Qt.size(36, 36)
 							fillMode: Image.PreserveAspectFit
 						}
 						ColorOverlay {
@@ -438,8 +459,33 @@ PluginComponent {
 						anchors.centerIn: parent
 						text: label
 						color: ma.containsMouse ? "white" : (isPrimary ? Qt.rgba(1, 0.8, 0.8, 1) : Qt.rgba(1, 1, 1, 0.7))
-						font.pixelSize: 13
+						font.pixelSize: 14
 						font.weight: Font.Medium
+						Behavior on color { ColorAnimation { duration: 300 } }
+					}
+				}
+
+				Rectangle {
+					Layout.alignment: Qt.AlignHCenter
+					Layout.topMargin: -2
+					
+					width: 24
+					height: 24
+					radius: 8
+					
+					color: ma.containsMouse ? Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.2) : (isPrimary ? Qt.rgba(1, 0.8, 0.8, 0.1) : Qt.rgba(1, 1, 1, 0.05))
+					border.color: ma.containsMouse ? Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.5) : (isPrimary ? Qt.rgba(1, 0.8, 0.8, 0.3) : Qt.rgba(1, 1, 1, 0.15))
+					border.width: 1
+					
+					Behavior on color { ColorAnimation { duration: 300 } }
+					Behavior on border.color { ColorAnimation { duration: 300 } }
+
+					Text {
+						anchors.centerIn: parent
+						text: shortcutKey
+						color: ma.containsMouse ? accentColor : (isPrimary ? Qt.rgba(1, 0.8, 0.8, 0.9) : Qt.rgba(1, 1, 1, 0.4))
+						font.pixelSize: 11
+						font.weight: Font.Bold
 						Behavior on color { ColorAnimation { duration: 300 } }
 					}
 				}
