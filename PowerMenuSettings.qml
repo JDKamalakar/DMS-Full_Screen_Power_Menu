@@ -7,7 +7,7 @@ import qs.Modules.Plugins
 
 PluginSettings {
     id: root
-    pluginId: "dmsFullScreenPowerMenu"
+    pluginId: "fullscreenPowerMenu"
 
     Column {
         id: rootWrapper

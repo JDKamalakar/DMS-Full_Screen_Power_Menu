@@ -13,11 +13,11 @@ PluginComponent {
 	id: root
 
 	// -------------------------------------------------------------------------
-	// IPC — trigger via: dms ipc dmsFullScreenPowerMenu toggle
+	// IPC — trigger via: dms ipc fullscreenPowerMenu toggle
 	// -------------------------------------------------------------------------
 
 	IpcHandler {
-		target: "dmsFullScreenPowerMenu"
+		target: "fullscreenPowerMenu"
 
 		function toggle(): string {
 			root.toggle();
@@ -57,7 +57,7 @@ PluginComponent {
 		visible: false
 		color: "transparent"
 
-		WlrLayershell.namespace: "dms:plugins:dmsFullScreenPowerMenu"
+		WlrLayershell.namespace: "dms:plugins:fullscreenPowerMenu"
 		WlrLayershell.layer: WlrLayershell.Overlay
 		WlrLayershell.exclusiveZone: -1
 		WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
@@ -510,7 +510,7 @@ PluginComponent {
 	}
 
 	Component.onCompleted: {
-		console.info("dmsFullScreenPowerMenu: daemon loaded — use 'dms ipc dmsFullScreenPowerMenu toggle' to open");
+		console.info("fullscreenPowerMenu: daemon loaded — use 'dms ipc fullscreenPowerMenu toggle' to open");
 	}
 }
 
